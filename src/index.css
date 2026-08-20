@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import "tailwindcss";
+
+:root {
+    --font-heading: "Bebas Neue", sans-serif;
+    --font-body: "Roboto Condensed", sans-serif;
+    --font-code: "JetBrains Mono", monospace;
+}
+
+@keyframes slowZoom {
+    0% {
+        transform: scale(1.20);
+    }
+
+    50% {
+        transform: scale(1.24);
+    }
+
+    100% {
+        transform: scale(1.20);
+    }
+}
+
+.animate-slow-zoom {
+    animation: slowZoom 18s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 1.2s ease-in-out;
+}
