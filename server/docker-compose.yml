@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: anime-db
+    environment:
+      POSTGRES_USER: bikram
+      POSTGRES_PASSWORD: bikram123
+      POSTGRES_DB: anime_db
+      TZ: Asia/Kathmandu
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
