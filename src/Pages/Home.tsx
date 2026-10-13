@@ -1,166 +1,109 @@
-import { useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { Anime, CombinedSlide } from "../types/Anime-Types";
 
-import demonSlayer from "../assets/images/DShashiraarc.jpeg";
-import demonsBG from "../assets/images/demon-slayer-3840x2160-17643.jpg";
-import oneP from "../assets/images/onep.jpg";
-import onepc from "../assets/images/onepc.jpeg";
-import aotp from "../assets/images/AOTp.jpg";
-import aotpc from "../assets/images/eren mikas.png";
+import useHeroSlider from "../hooks/Main-UI-Pointer_Slider";
+import { getAllAnime } from "../api/Anime-Api";
 
-import TrendingCard from "../components/Cards/TrendingCards";
-
-const trendingData = [
-  {
-    id: 1,
-    title: "Demon Slayer",
-    info: "TV • 24 Episodes",
-    image: demonSlayer,
-  },
-  {
-    id: 2,
-    title: "One Piece",
-    info: "TV • 1100+ Episodes",
-    image: oneP,
-  },
-  {
-    id: 3,
-    title: "Attack On Titan",
-    info: "TV • 87 Episodes",
-    image: aotp,
-  },
-  {
-    id: 4,
-    title: "One Piece",
-    info: "TV • New Release",
-    image: oneP,
-  },
-  {
-    id: 5,
-    title: "Attack On Titan",
-    info: "TV • Popular",
-    image: aotp,
-  },
-  {
-    id: 6,
-    title: "Demon Slayer",
-    info: "TV • Featured",
-    image: demonSlayer,
-  },
-];
-
-const slides = [
-  {
-    id: 1,
-    title: "Demon Slayer",
-    image: demonSlayer,
-    bg: demonsBG,
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Nam vitae egestas ut tempus. Condimentum nec sed ut tempor vestibulum laoreet posuere pulvinar. Arcu gravida risus accumsan venenatis. Ullamcorper in magna viverra aliquet mi elementum.",
-  },
-  {
-    id: 2,
-    title: "One Piece",
-    image: oneP,
-    bg: onepc,
-    description:
-      "Explore the majestic beauty of untouched wilderness, soaring towering peaks, and serene natural horizons that stretch infinitely across the breathtaking terrain.",
-  },
-  {
-    id: 3,
-    title: "Attack On Titan",
-    image: aotp,
-    bg: aotpc,
-    description:
-      "Immerse yourself in modern structural designs, metropolitan cityscapes, and the fast-paced energy of urban environments.",
-  },
-];
+import TrendingData from "./Slides/Trending-Anime-Slides";
+import PopularAnimeSlides from "./Slides/Popular-Anime-Slides";
+import RecentlyAddedAnime from "./Slides/Recently-Added-Anime";
 
 export default function SnapStoryHero() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
+  const navigate = useNavigate();
+  const [anime, setAnime] = useState<Anime[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const CARD_STEP = 216;
-  const hasDragged = useRef(false);
+  useEffect(() => {
+    const fetchAnime = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllAnime();
+        setAnime(data);
+      } catch (err) {
+        console.error("Failed to fetch anime:", err);
+        setError("Failed to load anime.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
+    fetchAnime();
+  }, []);
 
-    hasDragged.current = false;
-    setIsDragging(true);
-    setDragStartX(e.clientX);
-    setDragOffset(0);
+  const animeSlides: CombinedSlide[] = anime.map((dbAnime) => ({
+    id: dbAnime.id,
+    title: dbAnime.title,
+    image: dbAnime.image,
+    background: dbAnime.background,
+  }));
 
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
+  const {
+    currentIndex,
+    isDragging,
+    dragOffset,
+    CARD_STEP,
+    active,
+    handlePointerDown,
+    handlePointerMove,
+    handleCardClick,
+    finishDrag,
+    handlePrev,
+    handleNext,
+  } = useHeroSlider(animeSlides);
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0d0a0a] text-white">
+        <p className="text-lg">Loading anime...</p>
+      </div>
+    );
+  }
 
-    const distance = e.clientX - dragStartX;
+  // Error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0d0a0a] text-white">
+        <p className="text-lg text-red-400">{error}</p>
+      </div>
+    );
+  }
 
-    if (Math.abs(distance) > 5) {
-      hasDragged.current = true;
-    }
-
-    let offset = distance;
-
-    if (currentIndex === 0 && distance > 0) {
-      offset = distance * 0.25;
-    }
-
-    if (currentIndex === slides.length - 1 && distance < 0) {
-      offset = distance * 0.25;
-    }
-
-    setDragOffset(offset);
-  };
-
-  const finishDrag = () => {
-    if (!isDragging) return;
-
-    const movedCards = Math.round(-dragOffset / CARD_STEP);
-
-    setCurrentIndex((prev) => {
-      const next = prev + movedCards;
-      return Math.max(0, Math.min(slides.length - 1, next));
-    });
-
-    setDragOffset(0);
-    setIsDragging(false);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
-
-  const active = slides[currentIndex];
+  // No anime found
+  if (animeSlides.length === 0 || !active) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0d0a0a] text-white">
+        <p className="text-lg">No anime found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-hidden bg-[#0d0a0a] text-white font-sans selection:bg-white/20">
       {/* Background */}
       <div
         key={currentIndex}
-        className="absolute top-0 left-0 w-full h-[750px] bg-cover bg-center bg-no-repeat animate-slow-zoom animate-fade-in"
-        style={{ backgroundImage: `url(${active.bg})` }}
+        className="absolute top-0 left-0 w-full h-[750px] bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+        style={{
+          backgroundImage: active.background
+            ? `url(http://localhost:5000${active.background})`
+            : "none",
+        }}
       />
 
       {/* Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0d0a0a]/50 via-[#0d0a0a]/40 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0d0a0a]/80 via-transparent to-[#0d0a0a]/60" />
+      <div className="absolute inset-0 h-[750px] bg-gradient-to-r from-[#0d0a0a]/80 via-[#0d0a0a]/50 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 h-[750px] bg-gradient-to-t from-[#0d0a0a] via-transparent to-[#0d0a0a]/60 pointer-events-none" />
 
       {/* Main Container */}
-      <div className="relative z-10 flex min-h-screen flex-col justify-between px-6 md:px-12 lg:px-20 py-6">
-        <main className="relative min-h-175">
+      <div className="relative z-10 flex min-h-[750px] flex-col justify-between px-6 md:px-12 lg:px-20 py-6">
+        <main className="relative min-h-[600px] flex flex-col lg:flex-row items-end justify-between pt-24 lg:pt-32">
           {/* Left Content */}
-          <div className="absolute left-0 bottom-7 lg:w-[42%] space-y-6 pb-6">
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-serif tracking-wide text-white drop-shadow-md transition-all duration-700">
+          <div className="w-full lg:w-[42%] space-y-6 pb-6 z-20">
+            <h2 className="text-4xl sm:text-5xl lg:text-7xl font-serif tracking-wide text-white drop-shadow-md transition-all duration-700">
               {active.title}
             </h2>
 
@@ -168,28 +111,42 @@ export default function SnapStoryHero() {
               {active.description}
             </p>
 
-            <div className="pt-2">
-              <button className="rounded-full bg-[#2a2222]/80 hover:bg-[#382e2e] border border-white/10 px-7 py-3 text-xs tracking-wider uppercase font-medium text-white backdrop-blur-md transition-all duration-300 shadow-lg cursor-pointer">
-                Explore now
+            <div className="pt-2 flex flex-wrap items-center gap-4">
+              {/* Watch Now */}
+              <button
+                type="button"
+                onClick={() => navigate(`/slide/${active.id}`)}
+                className="group inline-flex items-center justify-between gap-3 rounded-full bg-[#48A111] px-7 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_8px_30px_rgba(72,161,17,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#56B91A] hover:shadow-[0_10px_35px_rgba(72,161,17,0.4)] active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-[#48A111]/50 cursor-pointer"
+              >
+                <span>Watch Now</span>
+              </button>
+
+              {/* Details */}
+              <button
+                type="button"
+                onClick={() => navigate(`/slide/${active.id}`)}
+                className="group inline-flex items-center justify-between gap-3 rounded-full border border-white/20 bg-white/10 px-7 py-3 text-sm font-semibold uppercase tracking-wide text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 hover:border-white/30 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
+              >
+                <span>Details</span>
               </button>
             </div>
           </div>
 
           {/* Right Card Slider */}
-          <div className="absolute right-0 bottom-[10px] lg:w-[58%] flex flex-col items-center">
+          <div className="w-full lg:w-[58%] flex flex-col items-center mt-10 lg:mt-0 z-20">
             <div className="relative w-full flex items-center">
               {/* Left Arrow */}
               <button
                 onClick={handlePrev}
                 aria-label="Previous slide"
-                className="absolute left-2 z-50 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 flex items-center justify-center text-white backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xl"
+                className="absolute left-0 z-50 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 flex items-center justify-center text-white backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xl -translate-x-3 lg:-translate-x-6"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
               {/* Card Viewport */}
               <div
-                className={`w-full overflow-hidden px-16 select-none ${
+                className={`w-full overflow-hidden px-12 select-none ${
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 }`}
                 style={{ touchAction: "pan-y" }}
@@ -206,39 +163,40 @@ export default function SnapStoryHero() {
                       : "transition-transform duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                   } will-change-transform`}
                   style={{
-                    transform: `translate3d(${
-                      -(currentIndex * CARD_STEP) + dragOffset
-                    }px, 0, 0)`,
+                    transform: `translate3d(${-(currentIndex * CARD_STEP) + dragOffset}px, 0, 0)`,
                   }}
                 >
-                  {slides.map((slide, index) => {
+                  {animeSlides.map((slide, index) => {
                     const isCurrent = index === currentIndex;
+                    const image = slide.image;
 
                     return (
                       <div
                         key={slide.id}
-                        onClick={() => {
-                          if (!hasDragged.current) {
-                            setCurrentIndex(index);
-                          }
-                        }}
-                        className={`group relative h-75 w-[200px] shrink-0 cursor-pointer overflow-hidden rounded-3xl bg-black transition-all duration-700 ease-out ${
+                        onClick={() => handleCardClick(slide.id)}
+                        className={`group relative h-[300px] w-[200px] shrink-0 cursor-pointer overflow-hidden rounded-3xl bg-black transition-all duration-700 ease-out ${
                           isCurrent
-                            ? "z-20 scale-100 border-2 border-white opacity-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]"
+                            ? "z-25 scale-100 border-2 border-white opacity-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]"
                             : "border border-white/20 opacity-70 scale-95"
                         }`}
                       >
-                        <img
-                          src={slide.image}
-                          alt={slide.title}
-                          draggable={false}
-                          className="pointer-events-none h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                        />
+                        {image ? (
+                          <img
+                            src={`http://localhost:5000${image}`}
+                            alt={slide.title}
+                            draggable={false}
+                            className="pointer-events-none h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-white">
+                            No image
+                          </div>
+                        )}
 
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
                         <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="text-sm font-semibold text-white">
+                          <h3 className="text-sm font-semibold text-white drop-shadow">
                             {slide.title}
                           </h3>
                         </div>
@@ -252,7 +210,7 @@ export default function SnapStoryHero() {
               <button
                 onClick={handleNext}
                 aria-label="Next slide"
-                className="absolute right-2 z-50 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 flex items-center justify-center text-white backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xl"
+                className="absolute right-0 z-50 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 flex items-center justify-center text-white backdrop-blur-md transition-all duration-200 cursor-pointer shadow-xl translate-x-3 lg:translate-x-6"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -261,20 +219,12 @@ export default function SnapStoryHero() {
         </main>
       </div>
 
-      {/* Trending Section */}
-      <section className="relative z-30 w-full bg-[#0d0a0a] px-6 md:px-12 lg:px-20 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {trendingData.map((item, index) => (
-            <TrendingCard
-              key={item.id}
-              title={item.title}
-              info={item.info}
-              image={item.image}
-              rank={index + 1}
-            />
-          ))}
-        </div>
-      </section>
+      {/* Other Sections (Make sure these are imported if used) */}
+      <div className="relative z-20 bg-[#0d0a0a] pt-12">
+        <TrendingData />
+        <PopularAnimeSlides />
+        <RecentlyAddedAnime />
+      </div>
     </div>
   );
 }

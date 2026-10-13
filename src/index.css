@@ -3,39 +3,119 @@
 @import "tailwindcss";
 
 :root {
-    --font-heading: "Bebas Neue", sans-serif;
-    --font-body: "Roboto Condensed", sans-serif;
-    --font-code: "JetBrains Mono", monospace;
+  --font-heading: "Bebas Neue", sans-serif;
+  --font-body: "Roboto Condensed", sans-serif;
+  --font-code: "JetBrains Mono", monospace;
 }
 
+/* Optional: register the variables with Tailwind v4 */
+@theme {
+  --font-heading: "Bebas Neue", sans-serif;
+  --font-body: "Roboto Condensed", sans-serif;
+  --font-code: "JetBrains Mono", monospace;
+}
+
+/* Animations */
 @keyframes slowZoom {
-    0% {
-        transform: scale(1.20);
-    }
+  0% {
+    transform: scale(1.20);
+  }
 
-    50% {
-        transform: scale(1.24);
-    }
+  50% {
+    transform: scale(1.24);
+  }
 
-    100% {
-        transform: scale(1.20);
-    }
+  100% {
+    transform: scale(1.20);
+  }
 }
 
 .animate-slow-zoom {
-    animation: slowZoom 18s ease-in-out infinite;
+  animation: slowZoom 18s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
+  0% {
+    opacity: 0;
+  }
 
-    100% {
-        opacity: 1;
-    }
+  100% {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
-    animation: fadeIn 1.2s ease-in-out;
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+/* Anime toast style */
+.anime-toast {
+  background: rgba(15, 12, 30, 0.88) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(180, 120, 255, 0.5) !important;
+  border-radius: 16px !important;
+
+  box-shadow:
+    0 0 15px rgba(168, 85, 247, 0.25),
+    0 0 35px rgba(236, 72, 153, 0.12),
+    inset 0 0 20px rgba(255, 255, 255, 0.03);
+
+  color: white !important;
+  min-height: 70px !important;
+  padding: 14px 18px !important;
+
+  font-family: var(--font-code);
+}
+
+.anime-toast-body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.anime-toast-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #d8b4fe;
+
+  text-shadow:
+    0 0 8px rgba(216, 180, 254, 0.8);
+}
+
+.anime-toast-user {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.35);
+}
+
+.anime-toast-message {
+  margin-top: 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.anime-toast .Toastify__close-button {
+  color: white !important;
+  opacity: 0.6;
+}
+
+.anime-toast .Toastify__close-button:hover {
+  opacity: 1;
+}
+
+.anime-toast .Toastify__progress-bar {
+  background: linear-gradient(
+    90deg,
+    #a855f7,
+    #ec4899,
+    #8b5cf6
+  ) !important;
+
+  height: 3px;
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import background from "../assets/images/background.png";
+import { registerUser } from "../services/authService";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -9,21 +10,56 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isRegisterOpen] = useState(true);
 
-  const handleRegister = (e: React.FormEvent) => {
+  // States for toggling password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Toast state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ username, email, password, confirmPassword });
+
+    if (password !== confirmPassword) {
+      setToastMessage("Passwords do not match!");
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+
+    try {
+      const data = await registerUser(username, email, password);
+      console.log("Registration successful:", data);
+
+      // Show Success Toast
+      setToastMessage("Registration successful! Redirecting to login...");
+
+      // Redirect to login after 2 seconds (Modify according to your router setup e.g., navigate('/login'))
+      setTimeout(() => {
+        window.location.href = "/login"; 
+      }, 2000);
+
+    } catch (error) {
+      console.error("Registration failed:", error);
+      setToastMessage("Registration failed. Please try again.");
+      setTimeout(() => setToastMessage(null), 3000);
+    }
   };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#152a45] font-sans text-white flex flex-col justify-between p-6 md:p-8">
-      {/* Background Layer with Correctly Nested Elements */}
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl border border-white/20 transition-all animate-bounce">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Background Layer */}
       <div
         className="absolute animate-slow-zoom inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${background})` }}
       >
         <div className="absolute inset-0 bg-black/30" />
-
-        {/* Abstract forest line silhouettes */}
         <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#0a1526] to-transparent opacity-80" />
       </div>
 
@@ -72,27 +108,45 @@ export default function Register() {
               {/* Password Field */}
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   required
-                  className="w-full bg-transparent border-b border-white/40 pb-2 pl-1 pr-10 text-sm placeholder-white/70 focus:outline-none focus:border-white transition-colors"
+                  className="w-full bg-transparent border-b border-white/40 pb-2 pl-1 pr-16 text-sm placeholder-white/70 focus:outline-none focus:border-white transition-colors"
                 />
-                <Lock className="absolute right-1 bottom-2 h-4 w-4 text-white/60 pointer-events-none" />
+                <div className="absolute right-1 bottom-2 flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-white/60 hover:text-white focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                  <Lock className="h-4 w-4 text-white/60 pointer-events-none" />
+                </div>
               </div>
 
               {/* Confirm Password Field */}
               <div className="relative">
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm Password"
                   required
-                  className="w-full bg-transparent border-b border-white/40 pb-2 pl-1 pr-10 text-sm placeholder-white/70 focus:outline-none focus:border-white transition-colors"
+                  className="w-full bg-transparent border-b border-white/40 pb-2 pl-1 pr-16 text-sm placeholder-white/70 focus:outline-none focus:border-white transition-colors"
                 />
-                <Lock className="absolute right-1 bottom-2 h-4 w-4 text-white/60 pointer-events-none" />
+                <div className="absolute right-1 bottom-2 flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="text-white/60 hover:text-white focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                  <Lock className="h-4 w-4 text-white/60 pointer-events-none" />
+                </div>
               </div>
 
               {/* Submit Button */}
