@@ -1,13 +1,7 @@
-export interface Anime {
-  id: number;
-  title: string;
-  image: string | null;
-  background: string | null;
-}
 
-export interface CombinedSlide {
+export interface AnimeEntry {
   id: number;
   title: string;
-  image: string | null;
-  background: string | null;
+  info: string;
+  image: string;
 }

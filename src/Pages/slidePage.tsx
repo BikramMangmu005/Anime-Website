@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import AddToListButton from "../components/My-LIst/AddToListButton";
 import { Play, Bell, Film, Star } from "lucide-react";
 
@@ -10,6 +10,7 @@ import { getAnimeById, type Anime } from "../api/Anime-Api";
 
 export default function SlidePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [anime, setAnime] = useState<Anime | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,7 +152,12 @@ export default function SlidePage() {
 
             {/* Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/30 transition-all duration-200">
+              <button
+                onClick={() => navigate(`/watch/${anime.id}?episode=1`)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl
+             bg-indigo-600 hover:bg-indigo-500 text-white font-semibold
+             shadow-lg shadow-indigo-600/30 transition-all duration-200"
+              >
                 <Play className="w-4 h-4 fill-white" />
                 Watch Ep 1
               </button>

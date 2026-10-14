@@ -1,8 +1,16 @@
+
 export interface Anime {
   id: number;
   title: string;
   image: string | null;
   background: string | null;
+  description: string | null;
+}
+
+export interface Episode {
+  number: number;
+  title: string;
+  videoUrl: string | null;
 }
 
 export interface CombinedSlide {
@@ -11,4 +19,3 @@ export interface CombinedSlide {
   image: string | null;
   background: string | null;
 }
-
